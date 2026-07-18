@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # puerto AMQP (lo usan los microservicios)
+      - "15672:15672" # panel de administracion web (usuario/clave: guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  despacho-guias-productor:
+    build: ./despacho-guias-productor
+    container_name: despacho-guias-productor
+    ports:
+      - "8080:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      # Sobreescribe el valor por defecto de Windows del application.properties
+      # con la ruta DENTRO del contenedor Linux donde se monta el wallet.
+      - TNS_ADMIN_PATH=/app/wallet
+    volumes:
+      # El wallet vive en ./wallet en tu maquina (fuera de Git, ver .gitignore)
+      # y se monta de solo lectura dentro del contenedor. Nunca se copia a
+      # la imagen, asi el secreto no queda horneado en ninguna capa Docker.
+      - ./wallet:/app/wallet:ro
+    # En Docker/EC2, application.properties se monta o se inyecta via
+    # variables de entorno; application.properties.example NO se usa en
+    # runtime, es solo la referencia de que variables configurar.
+
+  despacho-guias-consumidor:
+    build: ./despacho-guias-consumidor
+    container_name: despacho-guias-consumidor
+    ports:
+      - "8081:8081"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - TNS_ADMIN_PATH=/app/wallet
+    volumes:
+      - ./wallet:/app/wallet:ro

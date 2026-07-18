@@ -1,0 +1,37 @@
+# =========================================================
+# Configuracion general de la aplicacion
+# =========================================================
+spring.application.name=despacho-guias-consumidor
+server.port=8081
+
+# =========================================================
+# Conexion a Oracle Cloud Autonomous Database (misma BD que el productor)
+# =========================================================
+# Mismo mecanismo que el productor: valor por defecto para Windows local,
+# Docker Compose lo sobreescribe con la ruta Linux del contenedor.
+spring.datasource.url=jdbc:oracle:thin:@despachoguiasdb_high?TNS_ADMIN=${TNS_ADMIN_PATH:C:/dev/despacho-guias/wallet}
+spring.datasource.username=ADMIN
+spring.datasource.password=TU_PASSWORD_ORACLE_AQUI
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+spring.jpa.database-platform=org.hibernate.dialect.OracleDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+oracle.net.tns_admin=${TNS_ADMIN_PATH:C:/dev/despacho-guias/wallet}
+oracle.net.ssl_server_dn_match=true
+# =========================================================
+
+# =========================================================
+# Conexion a RabbitMQ (mismo broker que usa el productor)
+# =========================================================
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+# =========================================================
+
+# =========================================================
+# Spring Boot Actuator (monitoreo)
+# =========================================================
+management.endpoints.web.exposure.include=health,info

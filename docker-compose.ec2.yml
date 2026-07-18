@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  despacho-guias-productor:
+    image: dominiquehernandezvallejos/despacho-guias-productor:latest
+    container_name: despacho-guias-productor
+    ports:
+      - "8080:8080"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - TNS_ADMIN_PATH=/app/wallet
+      # SIN spring.profiles.active=local a proposito: en EC2 queremos que
+      # S3Config use el rol IAM de la instancia (perfil "!local"), no
+      # credenciales manuales que expiran. Ver S3Config.java.
+    volumes:
+      - ./wallet:/app/wallet:ro
+
+  despacho-guias-consumidor:
+    image: dominiquehernandezvallejos/despacho-guias-consumidor:latest
+    container_name: despacho-guias-consumidor
+    ports:
+      - "8081:8081"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - TNS_ADMIN_PATH=/app/wallet
+    volumes:
+      - ./wallet:/app/wallet:ro
+
+      

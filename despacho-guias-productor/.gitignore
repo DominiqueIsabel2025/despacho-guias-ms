@@ -1,0 +1,13 @@
+target/
+*.class
+.vscode/
+wallet/
+*.sso
+*.pem
+*.jks
+.env
+application.properties
+*.json
+body*.json
+rolebody*.json
+passbody*.json

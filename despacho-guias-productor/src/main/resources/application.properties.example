@@ -1,0 +1,72 @@
+# =========================================================
+# Configuracion general de la aplicacion
+# =========================================================
+spring.application.name=despacho-guias-productor
+server.port=8080
+
+# =========================================================
+# Conexion a Oracle Cloud Autonomous Database
+# =========================================================
+# TNS_ADMIN_PATH tiene un valor por defecto para cuando corres la app
+# directo en Windows (fuera de Docker). Docker Compose sobreescribe esta
+# variable de entorno con la ruta Linux del contenedor (/app/wallet) -
+# ver docker-compose.yml. Asi NO hay que tocar codigo ni properties para
+# que funcione en ambos entornos.
+spring.datasource.url=jdbc:oracle:thin:@despachoguiasdb_high?TNS_ADMIN=${TNS_ADMIN_PATH:C:/dev/despacho-guias/wallet}
+spring.datasource.username=ADMIN
+spring.datasource.password=TU_PASSWORD_ORACLE_AQUI
+spring.datasource.driver-class-name=oracle.jdbc.OracleDriver
+
+spring.jpa.database-platform=org.hibernate.dialect.OracleDialect
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+oracle.net.tns_admin=${TNS_ADMIN_PATH:C:/dev/despacho-guias/wallet}
+oracle.net.ssl_server_dn_match=true
+# =========================================================
+
+# =========================================================
+# Conexion a RabbitMQ
+# En local: localhost. En EC2: el host del contenedor/instancia de RabbitMQ
+# (ver docker-compose o el Security Group correspondiente).
+# =========================================================
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+# =========================================================
+
+# =========================================================
+# AWS S3 (subida de archivos)
+# Las credenciales aws.accessKeyId/secretKey/sessionToken SOLO se usan
+# si activas el perfil "local" (spring.profiles.active=local). En EC2
+# se usa el rol IAM de la instancia (ver S3Config -> perfil "!local").
+# =========================================================
+aws.s3.bucket-name=despacho-guias-bucket-dominique
+aws.s3.region=us-east-1
+aws.accessKeyId=TU_ACCESS_KEY_AQUI
+aws.secretKey=TU_SECRET_KEY_AQUI
+aws.sessionToken=TU_SESSION_TOKEN_AQUI
+# =========================================================
+
+# =========================================================
+# Azure AD B2C - Validacion de JWT (Spring Security OAuth2 Resource Server)
+#
+# ESTA PROPIEDAD FALTABA EN EL PROYECTO ANTERIOR.
+# Sin ella, Spring no puede validar la FIRMA del token contra el tenant,
+# aunque el codigo sepa extraer los roles del claim personalizado.
+#
+# Formato tipico para Azure AD B2C (reemplaza TENANT y POLICY):
+# https://TENANT.b2clogin.com/TENANT.onmicrosoft.com/POLICY/v2.0/
+#
+# Se obtiene desde Azure Portal > Azure AD B2C > Registros de aplicaciones
+# > (tu app) > Extremos > "Documento de metadatos de OpenID Connect"
+# (la URL sin el sufijo /.well-known/openid-configuration)
+# =========================================================
+spring.security.oauth2.resourceserver.jwt.issuer-uri=TU_ISSUER_URI_DE_AZURE_AD_B2C_AQUI
+# =========================================================
+
+# =========================================================
+# Spring Boot Actuator (monitoreo)
+# =========================================================
+management.endpoints.web.exposure.include=health,info
